@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 
 class Model:
     def __init__(self):
@@ -51,7 +52,8 @@ class Model:
             for j in range(-1, 2):
                 if (i != 0 or j != 0) and self.is_flip_in_direction(i, j, pos):
                     self.flip(i, j, pos)
-        self.turn *= -1
+        if self.all_options():
+            self.turn *= -1
 
     def all_options(self):
         all_options = []
@@ -60,3 +62,23 @@ class Model:
                 if self.valid([i, j]):
                     all_options.append([i, j])
         return all_options
+
+    def pieces(self):
+        sum = 0
+        for i in self.board:
+            sum += i
+        return sum
+
+    def min_max(self, depth):
+        all_options = self.all_options()
+        help_turn = self.turn
+        help_board = deepcopy(self.board)
+        if not all_options:
+            self.turn *= -1
+            all_options = self.all_options()
+            if not all_options():
+                return self.pieces() * 100000
+            return self.min_max(self, depth - 1)
+
+        for pos in all_options:
+            self.move(pos)
