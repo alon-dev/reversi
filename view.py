@@ -1,5 +1,6 @@
 from tkinter import PhotoImage, Tk
 import tkinter as tk
+import numpy as np
 
 from controller import Controller
 
@@ -34,6 +35,7 @@ class View:
         self.button_list[4][3].configure(image=self.button_list[4][3].WHITE_IMAGE)
 
         self.button_frm.pack()
+        self.highlight()
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
             b.configure(image=b.BLACK_IMAGE) if self.player == -1 else b.configure(image=b.WHITE_IMAGE)
@@ -49,12 +51,22 @@ class View:
                         self.turn_black(self.button_list[i][j])
                     elif board[i][j] == 1:
                         self.turn_white(self.button_list[i][j])
+            self.highlight()
         else:
             return
     def turn_black(self, b):
         b.configure(image=b.BLACK_IMAGE)
     def turn_white(self, b):
         b.configure(image=b.WHITE_IMAGE)
+    def highlight(self):
+        highlights = self.controller.options()
+        for i in range(8):
+            for j in range(8):
+                if highlights[i, j] != 0:
+                    self.button_list[i][j].configure(bg="yellow")
+                    self.button_list[i][j]["text"] = highlights[i][j]
+                else:
+                    self.button_list[i][j].configure(bg="green")
 root = Tk()
 root.title("Orthello")
 view_controller = View(root)
