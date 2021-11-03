@@ -42,7 +42,7 @@ class Model:
                     res = self.is_flip_in_direction(i, j, pos)
                     if res[0]:
                         count+=res[1]
-        if count >= 0:
+        if count > 0:
             res = (True, count)
         else:
             res = (False, count)
@@ -81,17 +81,72 @@ class Model:
         for i in self.board:
             sum += i
         return sum
+    
+    @staticmethod
+    def game_over(board):
+        model = Model()
+        model.board = board
+        if not model.all_options():
+            model.turn *= -1
+            if not model.all_options():
+                return True
+        return False
+    
+    @staticmethod
+    def is_terminal(alg_board, depth):
+        if depth == 0 or Model.game_over(alg_board):
+            return True
+        return False
+    
+    @staticmethod
+    def score(board):
+        sum_white = 0
+        sum_black = 0
+        for i in range(8):
+            for j in range(8):
+                if board[i][j] == -1:
+                    if (i == 0 and j == 0) or (i == 7 and j == 0) or (i == 7 and j == 7) or (i == 0 and j == 7):
+                        sum_black+=20
+                    else:
+                        sum_black+=1
+                if board[i][j] == 1:
+                    if (i == 0 and j == 0) or (i == 7 and j == 0) or (i == 7 and j == 7) or (i == 0 and j == 7):
+                        sum_white+=20
+                    else:
+                        sum_white+=1
+        return sum_black - sum_white
 
-    def min_max(self, depth):
-        all_options = self.all_options()
-        help_turn = self.turn
-        help_board = deepcopy(self.board)
-        if not all_options:
-            self.turn *= -1
-            all_options = self.all_options()
-            if not all_options():
-                return self.pieces() * 100000
-            return self.min_max(self, depth - 1)
-
-        for pos in all_options:
-            self.move(pos)
+    @staticmethod
+    def min_max(alg_board, depth, isMaximizingPlayer):
+        model = Model()
+        model.board = alg_board
+        if isMaximizingPlayer:
+            model.turn = -1
+        else:
+            model.turn = 1
+        if Model.is_terminal(model.board, depth):
+            return (None, Model.score(alg_board))
+        if isMaximizingPlayer:
+            best_score = float("-inf")
+            best_move = None
+            moves = model.all_options()
+            for move in moves:
+                temp_model = deepcopy(model)
+                temp_model.move(move[0])
+                score = temp_model.min_max(temp_model.board, depth-1, not isMaximizingPlayer)[1]
+                if score > best_score:
+                    best_move = move
+                    best_score = score
+            return (best_move, best_score)
+        else:
+            best_score = float("inf")
+            best_move = None
+            moves = model.all_options()
+            for move in moves:
+                temp_model = deepcopy(model)
+                temp_model.move(move[0])
+                score = temp_model.min_max(temp_model.board, depth-1, not isMaximizingPlayer)[1]
+                if score < best_score:
+                    best_move = move
+                    best_score = score
+            return (best_move, best_score)

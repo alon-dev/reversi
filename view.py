@@ -1,6 +1,8 @@
 from tkinter import PhotoImage, Tk
 import tkinter as tk
+from tkinter.constants import GROOVE
 import numpy as np
+import time
 
 from controller import Controller
 
@@ -10,7 +12,7 @@ class MyButton(tk.Button):
         self.i = i
         self.j = j
         self.DEFAULT_IMAGE = PhotoImage()
-        super().__init__(master=master, width=50, height=50, image=self.DEFAULT_IMAGE, bg="green", command=self.my_command)
+        super().__init__(master=master, width=50, height=50, image=self.DEFAULT_IMAGE, bg="green", command=self.my_command, text="", padx=0, pady=0, font=("Consolas", 14), highlightthickness=0, bd=1, relief=GROOVE)
         self.WHITE_IMAGE = PhotoImage(file="img/white.png")
         self.BLACK_IMAGE = PhotoImage(file="img/black.png")
     def my_command(self):
@@ -51,6 +53,16 @@ class View:
                         self.turn_black(self.button_list[i][j])
                     elif board[i][j] == 1:
                         self.turn_white(self.button_list[i][j])
+            self.dont_highlight()
+            root.update()
+            time.sleep(1)
+            board = self.controller.computer_play()
+            for i in range(8):
+                for j in range(8):
+                    if(board[i][j] == -1):
+                        self.turn_black(self.button_list[i][j])
+                    elif board[i][j] == 1:
+                        self.turn_white(self.button_list[i][j])
             self.highlight()
         else:
             return
@@ -68,6 +80,11 @@ class View:
                     self.button_list[i][j].configure(compound="center")
                 else:
                     self.button_list[i][j].configure(bg="green", text="")
+    def dont_highlight(self):
+        for i in range(8):
+            for j in range(8):
+                self.button_list[i][j].configure(bg="green", text="")
+
 root = Tk()
 root.title("Orthello")
 view_controller = View(root)
