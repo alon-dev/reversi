@@ -64,9 +64,10 @@ class View:
             for j in range(8):
                 if highlights[i, j] != 0:
                     self.button_list[i][j].configure(bg="yellow")
-                    self.button_list[i][j]["text"] = highlights[i][j]
+                    self.button_list[i][j]["text"] = int(highlights[i][j])
+                    self.button_list[i][j].configure(compound="center")
                 else:
-                    self.button_list[i][j].configure(bg="green")
+                    self.button_list[i][j].configure(bg="green", text="")
 root = Tk()
 root.title("Orthello")
 view_controller = View(root)
