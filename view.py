@@ -81,7 +81,7 @@ class View:
     def highlight(self):
         highlights = self.controller.options()
         if len(highlights) == 0:
-            self.controller.computer_play(True)
+            self.controller.computer_play()
         for i in range(8):
             for j in range(8):
                 if highlights[i, j] != 0:
