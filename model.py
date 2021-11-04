@@ -9,6 +9,7 @@ class Model:
         self.board[3, 4] = 1
         self.board[4, 3] = 1
         self.turn = -1
+        self.game_over = False
         
     def is_flip_in_direction(self, dir1, dir2, pos):
         num = 0
@@ -64,11 +65,13 @@ class Model:
                     if self.is_flip_in_direction(i, j, pos)[0]:
                         self.flip(i, j, pos)
         self.turn *= -1
-        game_over = Model.game_over(self.board)
-        if not game_over:
+        if len(self.all_options()) == 0:
+            self.turn *= -1
             if len(self.all_options()) == 0:
-                self.turn *= -1
-        return game_over
+                self.game_over = True
+                return self.game_over
+        self.game_over = False
+        return self.game_over
 
     def all_options(self):
         all_options = []
@@ -86,47 +89,52 @@ class Model:
                 sum += j
         return sum
     
-    @staticmethod
-    def game_over(board):
-        model = Model()
-        model.board = board
-        if not model.all_options():
-            model.turn *= -1
-            if not model.all_options():
-                return True
-        return False
-    
-    @staticmethod
-    def is_terminal(alg_board, depth):
-        if depth == 0 or Model.game_over(alg_board):
+    def is_terminal(self, depth):
+        if depth == 0 or self.game_over:
             return True
         return False
     
-    @staticmethod
-    def score(board):
-        sum_white = 0
-        sum_black = 0
+    def score1(self):
+        piece_score = self.pieces()
+        for i in [0, 7]:
+            for j in [0, 7]:
+                piece_score += self.board[i][j] * 10
+        if self.game_over:
+            if piece_score > 0:
+                return 1000000000 + piece_score
+            elif piece_score < 0:
+                return -100000000 + piece_score
+            else:
+                return 0
+        return int(piece_score)
+    def score2(self):
+        if self.game_over:
+            win_pieces = self.pieces()
+            if win_pieces > 0:
+                return 1000000000 + win_pieces
+            elif win_pieces < 0:
+                return -100000000 + win_pieces
+            else:
+                return 0
+        scoring_table = np.array([[20, -3, 11, 8,  8, 11, -3, 20],
+                        [-3, -7, -4, 1,  1, -4, -7, -3],
+                        [11, -4, 2,  2,  2,  2, -4, 11],
+                        [ 8,  1, 2, -3, -3,  2,  1,  8],
+                        [ 8,  1, 2, -3, -3,  2,  1,  8],
+                        [11, -4, 2,  2,  2,  2, -4, 11],
+                        [-3, -7, -4, 1,  1, -4, -7, -3],
+                        [20, -3, 11, 8,  8, 11, -3, 20]])
+        sum = 0
         for i in range(8):
             for j in range(8):
-                if board[i][j] == -1:
-                    if (i == 0 and j == 0) or (i == 7 and j == 0) or (i == 7 and j == 7) or (i == 0 and j == 7):
-                        sum_black+=20
-                    else:
-                        sum_black+=1
-                if board[i][j] == 1:
-                    if (i == 0 and j == 0) or (i == 7 and j == 0) or (i == 7 and j == 7) or (i == 0 and j == 7):
-                        sum_white+=20
-                    else:
-                        sum_white+=1
-        return sum_black - sum_white
+                sum += scoring_table[i][j] * self.board[i][j]
+        return sum
+        
+        
 
     def min_max(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
-        if isMaximizingPlayer:
-            self.turn = -1
-        else:
-            self.turn = 1
-        if Model.is_terminal(self.board, depth):
-            return (None, Model.score(self.board))
+        if self.is_terminal(depth):
+            return (None, self.score1())
         if isMaximizingPlayer:
             best_score = float("-inf")
             best_move = None
@@ -144,7 +152,7 @@ class Model:
                     alpha = score
                     if alpha >= beta:
                         break
-            return (best_move, best_score)
+            return (best_move, best_score, self.turn)
         else:
             best_score = float("inf")
             best_move = None
@@ -159,7 +167,47 @@ class Model:
                 if score < best_score:
                     best_move = move
                     best_score = score
-                    beta = best_score
+                    beta = score
+                    if alpha >= beta:
+                        break
+            return (best_move, best_score, self.turn)
+    
+    def min_max1(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
+        if self.is_terminal(depth):
+            return (None, self.score2())
+        if isMaximizingPlayer:
+            best_score = float("-inf")
+            best_move = None
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
+            for move in moves:
+                self.move(move[0])
+                score = self.min_max1(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
+                if score > best_score:
+                    best_move = move
+                    best_score = score
+                    alpha = score
+                    if alpha >= beta:
+                        break
+            return (best_move, best_score, self.score2())
+        else:
+            best_score = float("inf")
+            best_move = None
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
+            for move in moves:
+                self.move(move[0])
+                score = self.min_max1(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
+                if score < best_score:
+                    best_move = move
+                    best_score = score
+                    beta = score
                     if alpha >= beta:
                         break
             return (best_move, best_score)

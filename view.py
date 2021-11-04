@@ -37,11 +37,26 @@ class View:
         self.button_list[4][3].configure(image=self.button_list[4][3].WHITE_IMAGE)
 
         self.button_frm.pack()
-        self.highlight()
+        #self.highlight()
         self.labelFrm = tk.Frame(self.master)
         self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Orthello!", fg="red")
         self.labelFrm.pack()
         self.win_label.pack()
+        self.win_label["text"] = "Player 1 is Playing!"
+        self.master.update()
+        while True:
+            time.sleep(1)
+            board, is_win, pieces, turn = self.controller.computer_play()
+            self.update(board)
+            if is_win:
+                self.win(pieces)
+                break
+            if turn == -1:
+                self.win_label["text"] = "Player 1 is playing!"
+            else:
+                self.win_label["text"] = "Player 2 is playing!"
+            self.master.update()
+
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
             b.configure(image=b.BLACK_IMAGE) if self.player == -1 else b.configure(image=b.WHITE_IMAGE)
@@ -61,14 +76,7 @@ class View:
                 self.win(pieces)
             if not is_double:
                 self.dont_highlight()
-                root.update()
-                board, is_win, pieces = self.controller.computer_play()
-                for i in range(8):
-                    for j in range(8):
-                        if(board[i][j] == -1):
-                            self.turn_black(self.button_list[i][j])
-                        elif board[i][j] == 1:
-                            self.turn_white(self.button_list[i][j])
+                self.master.update()
                 if is_win:
                     self.win(pieces)
             self.highlight()
@@ -106,6 +114,14 @@ class View:
         for row in self.button_list:
             for button in row:
                 button.configure(state="disabled")
+    def update(self, board):
+        for i in range(8):
+            for j in range(8):
+                if(board[i][j] == -1):
+                    self.turn_black(self.button_list[i][j])
+                elif board[i][j] == 1:
+                    self.turn_white(self.button_list[i][j])
+        self.master.update()
  
 
 
