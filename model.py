@@ -57,8 +57,6 @@ class Model:
             y += dir2
 
     def move(self, pos):
-        if not self.all_options():
-            self.turn *= -1
         self.board[pos[0], pos[1]] = self.turn
         for i in range(-1, 2):
             for j in range(-1, 2):
@@ -66,6 +64,11 @@ class Model:
                     if self.is_flip_in_direction(i, j, pos)[0]:
                         self.flip(i, j, pos)
         self.turn *= -1
+        game_over = Model.game_over(self.board)
+        if not game_over:
+            if len(self.all_options()) == 0:
+                self.turn *= -1
+        return game_over
 
     def all_options(self):
         all_options = []
@@ -79,7 +82,8 @@ class Model:
     def pieces(self):
         sum = 0
         for i in self.board:
-            sum += i
+            for j in i:
+                sum += j
         return sum
     
     @staticmethod
@@ -116,37 +120,46 @@ class Model:
                         sum_white+=1
         return sum_black - sum_white
 
-    @staticmethod
-    def min_max(alg_board, depth, isMaximizingPlayer):
-        model = Model()
-        model.board = alg_board
+    def min_max(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
         if isMaximizingPlayer:
-            model.turn = -1
+            self.turn = -1
         else:
-            model.turn = 1
-        if Model.is_terminal(model.board, depth):
-            return (None, Model.score(alg_board))
+            self.turn = 1
+        if Model.is_terminal(self.board, depth):
+            return (None, Model.score(self.board))
         if isMaximizingPlayer:
             best_score = float("-inf")
             best_move = None
-            moves = model.all_options()
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
             for move in moves:
-                temp_model = deepcopy(model)
-                temp_model.move(move[0])
-                score = temp_model.min_max(temp_model.board, depth-1, not isMaximizingPlayer)[1]
+                self.move(move[0])
+                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
                 if score > best_score:
                     best_move = move
                     best_score = score
+                    alpha = score
+                    if alpha >= beta:
+                        break
             return (best_move, best_score)
         else:
             best_score = float("inf")
             best_move = None
-            moves = model.all_options()
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
             for move in moves:
-                temp_model = deepcopy(model)
-                temp_model.move(move[0])
-                score = temp_model.min_max(temp_model.board, depth-1, not isMaximizingPlayer)[1]
+                self.move(move[0])
+                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
                 if score < best_score:
                     best_move = move
                     best_score = score
+                    beta = best_score
+                    if alpha >= beta:
+                        break
             return (best_move, best_score)

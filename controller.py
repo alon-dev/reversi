@@ -10,15 +10,27 @@ class Controller:
             return True
         return False
     def place(self, i,j):
+        turn = self.model.turn
         if self.model.valid((i,j))[0]:
-            self.model.move((i,j))
-            return self.model.board
+            is_end = self.model.move((i,j))
+            if is_end:
+                return self.model.board, True, True, self.model.pieces()
+            if self.model.turn == turn:
+                return self.model.board, True, False, self.model.pieces()
+            return self.model.board, False, False, self.model.pieces()
         return None
     def computer_play(self):
-        move = Model.min_max(self.model.board, 4, False)[0][0]
-        print(move)
-        self.model.move(move)
-        return self.model.board
+        turn = self.model.turn
+        move = self.model.min_max(6, False)[0][0]
+        is_end = self.model.move(move)
+        if is_end:
+            return self.model.board, True, self.model.pieces()
+        while self.model.turn == turn:
+            move = self.model.min_max(6, False)[0][0]
+            is_end = self.model.move(move)
+            if is_end:
+                return self.model.board, True, self.model.pieces()
+        return self.model.board, False, self.model.pieces()
     def options(self):
         board = np.zeros((8,8))
         options = self.model.all_options()

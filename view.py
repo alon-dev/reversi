@@ -1,4 +1,4 @@
-from tkinter import PhotoImage, Tk
+from tkinter import Label, PhotoImage, Tk
 import tkinter as tk
 from tkinter.constants import GROOVE
 import numpy as np
@@ -38,6 +38,10 @@ class View:
 
         self.button_frm.pack()
         self.highlight()
+        self.labelFrm = tk.Frame(self.master)
+        self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Orthello!", fg="red")
+        self.labelFrm.pack()
+        self.win_label.pack()
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
             b.configure(image=b.BLACK_IMAGE) if self.player == -1 else b.configure(image=b.WHITE_IMAGE)
@@ -46,23 +50,27 @@ class View:
                 self.player = 1
             else: 
                 self.player = -1
-            board = self.controller.place(b.i,b.j)
+            board, is_double, is_win, pieces = self.controller.place(b.i,b.j)
             for i in range(8):
                 for j in range(8):
                     if(board[i][j] == -1):
                         self.turn_black(self.button_list[i][j])
                     elif board[i][j] == 1:
                         self.turn_white(self.button_list[i][j])
-            self.dont_highlight()
-            root.update()
-            time.sleep(1)
-            board = self.controller.computer_play()
-            for i in range(8):
-                for j in range(8):
-                    if(board[i][j] == -1):
-                        self.turn_black(self.button_list[i][j])
-                    elif board[i][j] == 1:
-                        self.turn_white(self.button_list[i][j])
+            if is_win:
+                self.win(pieces)
+            if not is_double:
+                self.dont_highlight()
+                root.update()
+                board, is_win, pieces = self.controller.computer_play()
+                for i in range(8):
+                    for j in range(8):
+                        if(board[i][j] == -1):
+                            self.turn_black(self.button_list[i][j])
+                        elif board[i][j] == 1:
+                            self.turn_white(self.button_list[i][j])
+                if is_win:
+                    self.win(pieces)
             self.highlight()
         else:
             return
@@ -72,6 +80,8 @@ class View:
         b.configure(image=b.WHITE_IMAGE)
     def highlight(self):
         highlights = self.controller.options()
+        if len(highlights) == 0:
+            self.controller.computer_play(True)
         for i in range(8):
             for j in range(8):
                 if highlights[i, j] != 0:
@@ -84,6 +94,20 @@ class View:
         for i in range(8):
             for j in range(8):
                 self.button_list[i][j].configure(bg="green", text="")
+    def win(self, pieces):
+        if pieces > 0:
+            self.win_label["text"] = f"White wins by {pieces}"
+        elif pieces == 0:
+            self.win_label["text"] = "Draw!"
+        else:
+            self.win_label["text"] = f"Black wins by {pieces}"
+        self.win_label["fg"] = "yellow"
+        self.win_label["bg"] = "black"
+        for row in self.button_list:
+            for button in row:
+                button.configure(state="disabled")
+ 
+
 
 root = Tk()
 root.title("Orthello")
