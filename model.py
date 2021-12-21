@@ -94,19 +94,6 @@ class Model:
             return True
         return False
     
-    def score1(self):
-        piece_score = self.pieces()
-        for i in [0, 7]:
-            for j in [0, 7]:
-                piece_score += self.board[i][j] * 10
-        if self.game_over:
-            if piece_score > 0:
-                return 1000000000 + piece_score
-            elif piece_score < 0:
-                return -100000000 + piece_score
-            else:
-                return 0
-        return int(piece_score)
     def score2(self):
         if self.game_over:
             win_pieces = self.pieces()
@@ -129,48 +116,6 @@ class Model:
             for j in range(8):
                 sum += scoring_table[i][j] * self.board[i][j]
         return sum
-        
-        
-
-    def min_max(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
-        if self.is_terminal(depth):
-            return (None, self.score1())
-        if isMaximizingPlayer:
-            best_score = float("-inf")
-            best_move = None
-            moves = self.all_options()
-            temp_board = deepcopy(self.board)
-            temp_turn = self.turn
-            for move in moves:
-                self.move(move[0])
-                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
-                self.board = deepcopy(temp_board)
-                self.turn = temp_turn
-                if score > best_score:
-                    best_move = move
-                    best_score = score
-                    alpha = score
-                    if alpha >= beta:
-                        break
-            return (best_move, best_score, self.turn)
-        else:
-            best_score = float("inf")
-            best_move = None
-            moves = self.all_options()
-            temp_board = deepcopy(self.board)
-            temp_turn = self.turn
-            for move in moves:
-                self.move(move[0])
-                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
-                self.board = deepcopy(temp_board)
-                self.turn = temp_turn
-                if score < best_score:
-                    best_move = move
-                    best_score = score
-                    beta = score
-                    if alpha >= beta:
-                        break
-            return (best_move, best_score, self.turn)
     
     def min_max1(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
         if self.is_terminal(depth):

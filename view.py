@@ -42,43 +42,26 @@ class View:
         self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Orthello!", fg="red")
         self.labelFrm.pack()
         self.win_label.pack()
-        self.win_label["text"] = "Player 1 is Playing!"
+        self.win_label["text"] = "Your Turn!"
+        self.highlight()
         self.master.update()
-        while True:
-            time.sleep(1)
-            board, is_win, pieces, turn = self.controller.computer_play()
-            self.update(board)
-            if is_win:
-                self.win(pieces)
-                break
-            if turn == -1:
-                self.win_label["text"] = "Player 1 is playing!"
-            else:
-                self.win_label["text"] = "Player 2 is playing!"
-            self.master.update()
 
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
-            b.configure(image=b.BLACK_IMAGE) if self.player == -1 else b.configure(image=b.WHITE_IMAGE)
-            board = None
-            if self.player==-1:
-                self.player = 1
-            else: 
-                self.player = -1
             board, is_double, is_win, pieces = self.controller.place(b.i,b.j)
-            for i in range(8):
-                for j in range(8):
-                    if(board[i][j] == -1):
-                        self.turn_black(self.button_list[i][j])
-                    elif board[i][j] == 1:
-                        self.turn_white(self.button_list[i][j])
+            self.update(board)
             if is_win:
                 self.win(pieces)
             if not is_double:
                 self.dont_highlight()
+                self.win_label["text"] = "PC's Turn!"
                 self.master.update()
+                board, is_win, pieces, self.player = self.controller.computer_play()
+                self.win_label["text"] = "Your Turn!"
+                self.update(board)
                 if is_win:
                     self.win(pieces)
+            self.dont_highlight()
             self.highlight()
         else:
             return
@@ -89,7 +72,7 @@ class View:
     def highlight(self):
         highlights = self.controller.options()
         if len(highlights) == 0:
-            self.controller.computer_play()
+            self.player = self.controller.computer_play()[3]
         for i in range(8):
             for j in range(8):
                 if highlights[i, j] != 0:
