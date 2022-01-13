@@ -5,6 +5,7 @@ import numpy as np
 import time
 
 from controller import Controller
+from main_menu import MM
 
 class MyButton(tk.Button):
     def __init__(self, master, command, i, j):
@@ -19,10 +20,13 @@ class MyButton(tk.Button):
         self.command(self)
 
 class View:
-    def __init__(self, master):
+    def __init__(self, master, ai, difficulty, first):
+        self.difficulty = difficulty
+        self.ai = ai
+        self.first = first
+        print(self.difficulty, self.ai)
         self.master = master
         self.controller = Controller()
-        self.player = -1
         self.button_frm = tk.Frame(self.master)
         self.button_list = []
 
@@ -39,32 +43,53 @@ class View:
         self.button_frm.pack()
         #self.highlight()
         self.labelFrm = tk.Frame(self.master)
-        self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Orthello!", fg="red")
+        self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Reversi!", fg="red")
         self.labelFrm.pack()
         self.win_label.pack()
-        self.win_label["text"] = "Your Turn!"
-        self.highlight()
+        if self.ai:
+            if self.first:
+                self.win_label["text"] = "Your Turn!"
+                self.highlight()
+            else:
+                self.win_label["text"] = "PC's Turn!"
+                self.master.update()
+                board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
+                self.win_label["text"] = "Your Turn!"
+                self.highlight()
+                self.update(board)
+        else:
+            self.win_label["text"] = "Black's Turn!"
+            self.highlight()
         self.master.update()
 
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
-            board, is_double, is_win, pieces = self.controller.place(b.i,b.j)
+            board, is_double, self.is_win, pieces = self.controller.place(b.i,b.j)
             self.update(board)
-            if is_win:
+            if self.is_win:
                 self.win(pieces)
-            if not is_double:
-                self.dont_highlight()
-                self.win_label["text"] = "PC's Turn!"
-                self.master.update()
-                board, is_win, pieces, self.player = self.controller.computer_play()
-                self.win_label["text"] = "Your Turn!"
-                self.update(board)
-                if is_win:
-                    self.win(pieces)
             self.dont_highlight()
-            self.highlight()
-        else:
-            return
+            if not is_double:
+                if not self.ai:
+                    self.highlight()
+                    for i in ["White's Turn!", "Black's Turn"]:
+                        if self.win_label["text"] != i:
+                            self.win_label["text"] = i
+                            break
+                else:
+                    self.win_label["text"] = "PC's Turn!"
+                    self.master.update()
+                    board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
+                    self.win_label["text"] = "Your Turn!"
+                    if self.is_win:
+                        self.win(pieces)
+                    self.highlight()
+                    self.update(board)
+                    if self.is_win:
+                        self.win(pieces)
+            else:
+                self.highlight()
+
     def turn_black(self, b):
         b.configure(image=b.BLACK_IMAGE)
     def turn_white(self, b):
@@ -72,7 +97,11 @@ class View:
     def highlight(self):
         highlights = self.controller.options()
         if len(highlights) == 0:
-            self.player = self.controller.computer_play()[3]
+            if self.ai:
+                if not self.is_win:
+                    self.controller.computer_play(self.difficulty)
+                else:
+                    return
         for i in range(8):
             for j in range(8):
                 if highlights[i, j] != 0:
@@ -91,7 +120,7 @@ class View:
         elif pieces == 0:
             self.win_label["text"] = "Draw!"
         else:
-            self.win_label["text"] = f"Black wins by {pieces}"
+            self.win_label["text"] = f"Black wins by {-pieces}"
         self.win_label["fg"] = "yellow"
         self.win_label["bg"] = "black"
         for row in self.button_list:
@@ -108,8 +137,13 @@ class View:
  
 
 
+main_menu = MM()
+main_menu.summon_menu()
+ai = main_menu.ai
+difficulty = main_menu.difficulty
+first = main_menu.first
 root = Tk()
-root.title("Orthello")
-view_controller = View(root)
+root.title("Reversi")
+view_controller = View(root, ai, difficulty, first)
 root.update()
 root.mainloop()

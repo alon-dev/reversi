@@ -94,7 +94,7 @@ class Model:
             return True
         return False
     
-    def score2(self):
+    def score1(self):
         if self.game_over:
             win_pieces = self.pieces()
             if win_pieces > 0:
@@ -116,10 +116,53 @@ class Model:
             for j in range(8):
                 sum += scoring_table[i][j] * self.board[i][j]
         return sum
-    
+
+    def score(self):
+        return self.pieces()
+    def min_max(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
+        if self.is_terminal(depth):
+            return (None, self.score())
+        if isMaximizingPlayer:
+            best_score = float("-inf")
+            best_move = None
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
+            for move in moves:
+                self.move(move[0])
+                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
+                if score > best_score:
+                    best_move = move
+                    best_score = score
+                    alpha = score
+                    if alpha >= beta:
+                        break
+            return (best_move, best_score, self.score())
+        else:
+            best_score = float("inf")
+            best_move = None
+            moves = self.all_options()
+            temp_board = deepcopy(self.board)
+            temp_turn = self.turn
+            for move in moves:
+                self.move(move[0])
+                score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
+                self.board = deepcopy(temp_board)
+                self.turn = temp_turn
+                if score < best_score:
+                    best_move = move
+                    best_score = score
+                    beta = score
+                    if alpha >= beta:
+                        break
+            return (best_move, best_score)
     def min_max1(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
         if self.is_terminal(depth):
-            return (None, self.score2())
+            if depth == 4:
+                print(self.board)
+            return (None, self.score1())
         if isMaximizingPlayer:
             best_score = float("-inf")
             best_move = None
@@ -137,7 +180,7 @@ class Model:
                     alpha = score
                     if alpha >= beta:
                         break
-            return (best_move, best_score, self.score2())
+            return (best_move, best_score, self.score1())
         else:
             best_score = float("inf")
             best_move = None

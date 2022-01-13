@@ -21,14 +21,18 @@ class Controller:
             return self.model.board, False, False, self.model.pieces()
         return None
 
-    def computer_play(self):
+    def computer_play(self, difficulty):
+        if difficulty == 0:
+            min_max_func = self.model.min_max
+        else:
+            min_max_func = self.model.min_max1
         turn = self.model.turn
         while self.model.turn == turn:
             if turn == -1:
-                res = self.model.min_max1(6, False)
+                res = min_max_func(4, False)
                 move = res[0][0]
             else:
-                res = self.model.min_max1(6, True)
+                res = min_max_func(4, True)
                 move = res[0][0]
             is_end = self.model.move(move)
             if is_end:
