@@ -35,10 +35,7 @@ class View:
             for j in range(8):
                 self.button_list[i].append(MyButton(master=self.button_frm, command=self.on_button_click, i=i, j=j))
                 self.button_list[i][j].grid(row=i, column=j)
-        self.button_list[3][3].configure(image=self.button_list[3][3].BLACK_IMAGE)
-        self.button_list[4][4].configure(image=self.button_list[4][4].BLACK_IMAGE)
-        self.button_list[3][4].configure(image=self.button_list[3][4].WHITE_IMAGE)
-        self.button_list[4][3].configure(image=self.button_list[4][3].WHITE_IMAGE)
+        self.set_start()
 
         self.button_frm.pack()
         #self.highlight()
@@ -90,6 +87,9 @@ class View:
             else:
                 self.highlight()
 
+    def set_start(self):
+        board = self.controller.generate_board()
+        self.update(board)
     def turn_black(self, b):
         b.configure(image=b.BLACK_IMAGE)
     def turn_white(self, b):

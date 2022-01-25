@@ -4,10 +4,6 @@ from copy import deepcopy
 class Model:
     def __init__(self):
         self.board = np.zeros((8, 8))
-        self.board[3, 3] = -1
-        self.board[4, 4] = -1
-        self.board[3, 4] = 1
-        self.board[4, 3] = 1
         self.turn = -1
         self.game_over = False
         
@@ -50,28 +46,34 @@ class Model:
         return res
 
     def flip(self, dir1, dir2, pos):
+        flipped = []
         x = pos[0] + dir1
         y = pos[1] + dir2
         while self.board[x, y] != self.turn:
             self.board[x, y] = self.turn
+            #flipped.append((x,y))
             x += dir1
             y += dir2
+        return flipped
 
     def move(self, pos):
+        flipped = []
         self.board[pos[0], pos[1]] = self.turn
         for i in range(-1, 2):
             for j in range(-1, 2):
                 if i!=0 or j!=0:
                     if self.is_flip_in_direction(i, j, pos)[0]:
-                        self.flip(i, j, pos)
+                        flip = self.flip(i, j, pos)
+                        #for position in flip:
+                            #flipped.append(position)
         self.turn *= -1
         if len(self.all_options()) == 0:
             self.turn *= -1
             if len(self.all_options()) == 0:
                 self.game_over = True
-                return self.game_over
+                return self.game_over, flipped
         self.game_over = False
-        return self.game_over
+        return self.game_over, flipped
 
     def all_options(self):
         all_options = []
@@ -81,6 +83,10 @@ class Model:
                 if res[0]:
                     all_options.append([[i, j], res[1]])
         return all_options
+    def reverse_move(self, pos, flipped):
+        self.board[pos[0], pos[1]] = 0
+        for position in flipped:
+            self.board[position[0], position[1]] *= -1
 
     def pieces(self):
         sum = 0
@@ -126,8 +132,8 @@ class Model:
             best_score = float("-inf")
             best_move = None
             moves = self.all_options()
-            temp_board = deepcopy(self.board)
             temp_turn = self.turn
+            temp_board = deepcopy(self.board)
             for move in moves:
                 self.move(move[0])
                 score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
@@ -144,8 +150,8 @@ class Model:
             best_score = float("inf")
             best_move = None
             moves = self.all_options()
-            temp_board = deepcopy(self.board)
             temp_turn = self.turn
+            temp_board = deepcopy(self.board)
             for move in moves:
                 self.move(move[0])
                 score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
@@ -160,15 +166,13 @@ class Model:
             return (best_move, best_score)
     def min_max1(self, depth, isMaximizingPlayer, alpha = float("-inf"), beta = float("inf")):
         if self.is_terminal(depth):
-            if depth == 4:
-                print(self.board)
             return (None, self.score1())
         if isMaximizingPlayer:
             best_score = float("-inf")
             best_move = None
             moves = self.all_options()
-            temp_board = deepcopy(self.board)
             temp_turn = self.turn
+            temp_board = deepcopy(self.board)
             for move in moves:
                 self.move(move[0])
                 score = self.min_max1(depth-1, not isMaximizingPlayer, alpha, beta)[1]
@@ -185,8 +189,8 @@ class Model:
             best_score = float("inf")
             best_move = None
             moves = self.all_options()
-            temp_board = deepcopy(self.board)
             temp_turn = self.turn
+            temp_board = deepcopy(self.board)
             for move in moves:
                 self.move(move[0])
                 score = self.min_max1(depth-1, not isMaximizingPlayer, alpha, beta)[1]
