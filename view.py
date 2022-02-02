@@ -1,6 +1,7 @@
-from tkinter import Label, PhotoImage, Tk
+from tkinter import Label, Menu, PhotoImage, Tk
 import tkinter as tk
 from tkinter.constants import GROOVE
+from tkinter.messagebox import showerror
 import numpy as np
 import time
 
@@ -36,27 +37,21 @@ class View:
                 self.button_list[i].append(MyButton(master=self.button_frm, command=self.on_button_click, i=i, j=j))
                 self.button_list[i][j].grid(row=i, column=j)
         self.set_start()
-
+        
         self.button_frm.pack()
         #self.highlight()
         self.labelFrm = tk.Frame(self.master)
         self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Reversi!", fg="red")
         self.labelFrm.pack()
         self.win_label.pack()
-        if self.ai:
-            if self.first:
-                self.win_label["text"] = "Your Turn!"
-                self.highlight()
-            else:
-                self.win_label["text"] = "PC's Turn!"
-                self.master.update()
-                board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
-                self.win_label["text"] = "Your Turn!"
-                self.highlight()
-                self.update(board)
-        else:
-            self.win_label["text"] = "Black's Turn!"
-            self.highlight()
+        self.update_turn()
+        self.menubar = Menu(self.master)
+        self.file_menu = Menu(self.menubar, tearoff=0)
+        self.file_menu.add_command(label="Save", command= self.controller.save_game)
+        self.file_menu.add_command(label="Load", command= self.load_game)
+        self.menubar.add_cascade(label="File", menu=self.file_menu)
+        self.master.config(menu=self.menubar)
+        
         self.master.update()
 
     def on_button_click(self, b):
@@ -86,14 +81,27 @@ class View:
                         self.win(pieces)
             else:
                 self.highlight()
-
+                
+    def load_game(self):
+        didload, board, turn = self.controller.load_game()
+        if didload:
+            self.update(board)
+            self.turn = turn
+            print(self.turn)
+            self.update_turn()
+        else:
+            showerror(title="Error!", message="No savefile found! Save a game and try again.")
+            
     def set_start(self):
-        board = self.controller.generate_board()
+        board, turn = self.controller.generate_board()
         self.update(board)
+        self.turn = turn
     def turn_black(self, b):
         b.configure(image=b.BLACK_IMAGE)
     def turn_white(self, b):
         b.configure(image=b.WHITE_IMAGE)
+    def turn_null(self, b):
+        b.configure(image=b.DEFAULT_IMAGE)
     def highlight(self):
         highlights = self.controller.options()
         if len(highlights) == 0:
@@ -133,6 +141,29 @@ class View:
                     self.turn_black(self.button_list[i][j])
                 elif board[i][j] == 1:
                     self.turn_white(self.button_list[i][j])
+                else:
+                    self.turn_null(self.button_list[i][j])
+        self.master.update()
+    def update_turn(self):
+        if self.ai:
+            if self.first and self.turn == -1:
+                self.win_label["text"] = "Your Turn!"
+                self.highlight()
+            else:
+                self.win_label["text"] = "PC's Turn!"
+                self.dont_highlight()
+                self.master.update()
+                board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
+                self.win_label["text"] = "Your Turn!"
+                self.highlight()
+                self.update(board)
+        else:
+            if self.turn == -1:
+                self.win_label["text"] = "Black's Turn!"
+                self.highlight()
+            else:
+                self.win_label["text"] = "White's Turn!"
+                self.highlight()
         self.master.update()
  
 

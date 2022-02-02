@@ -5,13 +5,53 @@ import timeit
 class Controller:
     def __init__(self) -> None:
         self.model = Model()
-        self.default_start = "8/8/8/3wb3/3bw3/8/8/8"
+        self.default_start = "8/8/8/3wb3/3bw3/8/8/8/B"
         self.start = ""
     def legal_place(self, i,j):
         if self.model.valid((i,j))[0]:
             return True
         return False
 
+    def save_game(self):
+        f = open('saved.txt', 'w+', encoding='utf8')
+        full_string = ""
+        for row in self.model.board:
+            row_string = ""
+            i = 0
+            for place in row:
+                if place == -1:
+                    if i != 0:
+                        row_string += str(i)
+                        i = 0
+                    row_string += "b"
+                elif place == 1:
+                    if i != 0:
+                        row_string += str(i)
+                        i = 0
+                    row_string += "w"
+                else:
+                    i += 1
+            if i != 0:
+                row_string += str(i)
+                i = 0
+            full_string += row_string
+            full_string += "/"
+        f.write(full_string)
+        if self.model.turn == -1:
+            f.write("B")
+        else:
+            f.write("W")
+        f.close()
+    
+    def load_game(self):
+        try:
+            f = open("saved.txt", 'r')
+            self.start = str(f.readline())
+            f.close()
+            board = self.generate_board()[0]
+            return True, board, self.model.turn
+        except:
+            return False, None, 0
     def place(self, i,j):
         turn = self.model.turn
         if self.model.valid((i,j))[0]:
@@ -31,10 +71,10 @@ class Controller:
         turn = self.model.turn
         while self.model.turn == turn:
             if turn == -1:
-                res = min_max_func(6, False)
+                res = min_max_func(5, False)
                 move = res[0][0]
             else:
-                res = min_max_func(6, True)
+                res = min_max_func(5, True)
                 move = res[0][0]
             is_end = self.model.move(move)[0]
             if is_end:
@@ -54,18 +94,25 @@ class Controller:
             x = self.default_start.split("/")
         else:
             x = self.start.split("/")
-        for i in range(8):
+        for i in range(9):
             current_row = x[i]
             j = 0
             for item in current_row:
                 if item.isdigit():
-                    while j < int(item):
+                    counter = 0
+                    while counter < int(item):
                         self.model.board[i,j] = 0
                         j += 1
+                        counter += 1
                 else:
                     if item == "w":
                         self.model.board[i, j] = 1
                     elif item =="b":
                         self.model.board[i,j] = -1
+                    elif item == "W":
+                        self.model.turn = 1
+                    elif item == "B":
+                        print("yes")
+                        self.model.turn = -1
                     j += 1
-        return self.model.board
+        return self.model.board, self.model.turn
