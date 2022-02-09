@@ -1,24 +1,11 @@
-from tkinter import Label, Menu, PhotoImage, Tk
+from tkinter import Label, Menu, Tk
 import tkinter as tk
-from tkinter.constants import GROOVE
 from tkinter.messagebox import showerror
-import numpy as np
-import time
 
 from controller import Controller
-from main_menu import MM
-
-class MyButton(tk.Button):
-    def __init__(self, master, command, i, j):
-        self.command = command
-        self.i = i
-        self.j = j
-        self.DEFAULT_IMAGE = PhotoImage()
-        super().__init__(master=master, width=50, height=50, image=self.DEFAULT_IMAGE, bg="green", command=self.my_command, text="", padx=0, pady=0, font=("Consolas", 14), highlightthickness=0, bd=1, relief=GROOVE)
-        self.WHITE_IMAGE = PhotoImage(file="img/white.png")
-        self.BLACK_IMAGE = PhotoImage(file="img/black.png")
-    def my_command(self):
-        self.command(self)
+from classes.main_menu import MM
+from classes.mybutton import MyButton
+from classes.constants import Constants
 
 class View:
     def __init__(self, master, ai, difficulty, first):
@@ -39,7 +26,6 @@ class View:
         self.set_start()
         
         self.button_frm.pack()
-        #self.highlight()
         self.labelFrm = tk.Frame(self.master)
         self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Reversi!", fg="red")
         self.labelFrm.pack()
@@ -53,7 +39,8 @@ class View:
         self.master.config(menu=self.menubar)
         
         self.master.update()
-
+        
+    # Handles moves made by the player(s)
     def on_button_click(self, b):
         if self.controller.legal_place(b.i, b.j):
             board, is_double, self.is_win, pieces = self.controller.place(b.i,b.j)
@@ -64,15 +51,15 @@ class View:
             if not is_double:
                 if not self.ai:
                     self.highlight()
-                    for i in ["White's Turn!", "Black's Turn"]:
+                    for i in [Constants.LABELS["white_turn"], Constants.LABELS["black_turn"]]:
                         if self.win_label["text"] != i:
                             self.win_label["text"] = i
                             break
                 else:
-                    self.win_label["text"] = "PC's Turn!"
+                    self.win_label["text"] = Constants.LABELS["pc_turn"]
                     self.master.update()
                     board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
-                    self.win_label["text"] = "Your Turn!"
+                    self.win_label["text"] = Constants.LABELS["player_turn"]
                     if self.is_win:
                         self.win(pieces)
                     self.highlight()
@@ -81,7 +68,8 @@ class View:
                         self.win(pieces)
             else:
                 self.highlight()
-                
+    
+    # Loads the saved board, and updates the board and the turn
     def load_game(self):
         didload, board, turn = self.controller.load_game()
         if didload:
@@ -92,16 +80,21 @@ class View:
         else:
             showerror(title="Error!", message="No savefile found! Save a game and try again.")
             
+    # Generates an empty board and sets it up.
     def set_start(self):
         board, turn = self.controller.generate_board()
         self.update(board)
         self.turn = turn
+        
+    #Handles the button images.
     def turn_black(self, b):
         b.configure(image=b.BLACK_IMAGE)
     def turn_white(self, b):
         b.configure(image=b.WHITE_IMAGE)
     def turn_null(self, b):
         b.configure(image=b.DEFAULT_IMAGE)
+    
+    # Highlights possible moves for the player and the amount of disks they'd flip. If vs pc and nothing to highlight- Plays for the pc.
     def highlight(self):
         highlights = self.controller.options()
         if len(highlights) == 0:
@@ -118,22 +111,28 @@ class View:
                     self.button_list[i][j].configure(compound="center")
                 else:
                     self.button_list[i][j].configure(bg="green", text="")
+    
+    #Removes any highlighted tiles on the board.
     def dont_highlight(self):
         for i in range(8):
             for j in range(8):
                 self.button_list[i][j].configure(bg="green", text="")
+    
+    #Handles wins. Ends the game and displays the winner.
     def win(self, pieces):
         if pieces > 0:
-            self.win_label["text"] = f"White wins by {pieces}"
+            self.win_label["text"] = Constants.LABELS["white_win"] + str(int(pieces))
         elif pieces == 0:
             self.win_label["text"] = "Draw!"
         else:
-            self.win_label["text"] = f"Black wins by {-pieces}"
+            self.win_label["text"] = Constants.LABELS["black_win"] + str(int(-pieces))
         self.win_label["fg"] = "yellow"
         self.win_label["bg"] = "black"
         for row in self.button_list:
             for button in row:
                 button.configure(state="disabled")
+                
+    #Updates the board to match a given 2d numpy array representation of a board            
     def update(self, board):
         for i in range(8):
             for j in range(8):
@@ -144,25 +143,27 @@ class View:
                 else:
                     self.turn_null(self.button_list[i][j])
         self.master.update()
+        
+    #Used to load/start a game and make sure labels are correct and correct player gets to play    
     def update_turn(self):
         if self.ai:
             if self.first and self.turn == -1:
-                self.win_label["text"] = "Your Turn!"
+                self.win_label["text"] = Constants.LABELS["player_turn"]
                 self.highlight()
             else:
-                self.win_label["text"] = "PC's Turn!"
+                self.win_label["text"] = Constants.LABELS["pc_turn"]
                 self.dont_highlight()
                 self.master.update()
                 board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
-                self.win_label["text"] = "Your Turn!"
+                self.win_label["text"] = Constants.LABELS["player_turn"]
                 self.highlight()
                 self.update(board)
         else:
             if self.turn == -1:
-                self.win_label["text"] = "Black's Turn!"
+                self.win_label["text"] = Constants.LABELS["black_turn"]
                 self.highlight()
             else:
-                self.win_label["text"] = "White's Turn!"
+                self.win_label["text"] = Constants.LABELS["white_turn"]
                 self.highlight()
         self.master.update()
  

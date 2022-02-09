@@ -1,12 +1,14 @@
 from model import Model
 import numpy as np
-import timeit
+from classes.constants import Constants
 
 class Controller:
+    
+
     def __init__(self) -> None:
         self.model = Model()
-        self.default_start = "8/8/8/3wb3/3bw3/8/8/8/B"
         self.start = ""
+    
     def legal_place(self, i,j):
         if self.model.valid((i,j))[0]:
             return True
@@ -91,7 +93,7 @@ class Controller:
     
     def generate_board(self):
         if self.start == "":
-            x = self.default_start.split("/")
+            x = Constants.DEFAULT_START.split("/")
         else:
             x = self.start.split("/")
         for i in range(9):
