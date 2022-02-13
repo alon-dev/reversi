@@ -5,15 +5,17 @@ from classes.constants import Constants
 class Controller:
     
 
-    def __init__(self) -> None:
-        self.model = Model()
+    def __init__(self, difficulty) -> None:
+        self.model = Model(difficulty)
         self.start = ""
     
+    #Checks if a certain tile (i,j) is a legal placement
     def legal_place(self, i,j):
         if self.model.valid((i,j))[0]:
             return True
         return False
-
+    
+    #Saves the current game to a file called saved.txt, overrides if present.
     def save_game(self):
         f = open('saved.txt', 'w+', encoding='utf8')
         full_string = ""
@@ -45,6 +47,7 @@ class Controller:
             f.write("W")
         f.close()
     
+    #Loads a game from saved.txt if it exists. otherwise returns an error.
     def load_game(self):
         try:
             f = open("saved.txt", 'r')
@@ -54,6 +57,8 @@ class Controller:
             return True, board, self.model.turn
         except:
             return False, None, 0
+    
+    #Places a disk in the tile (i,j)
     def place(self, i,j):
         turn = self.model.turn
         if self.model.valid((i,j))[0]:
@@ -65,23 +70,22 @@ class Controller:
             return self.model.board, False, False, self.model.pieces()
         return None
 
-    def computer_play(self, difficulty):
-        if difficulty == 0:
-            min_max_func = self.model.min_max
-        else:
-            min_max_func = self.model.min_max1
+    #Plays for the computer and returns the state of the game (is the game over, who is currently leading, etc)
+    def computer_play(self):
         turn = self.model.turn
         while self.model.turn == turn:
             if turn == -1:
-                res = min_max_func(5, False)
+                res = self.model.min_max(5, False)
                 move = res[0][0]
             else:
-                res = min_max_func(5, True)
+                res = self.model.min_max(5, True)
                 move = res[0][0]
-            is_end = self.model.move(move)[0]
+            is_end, flipped_and_ends = self.model.move(move)
             if is_end:
-                return self.model.board, True, self.model.pieces(), self.model.turn
-        return self.model.board, False, self.model.pieces(), self.model.turn
+                return self.model.board, True, self.model.pieces(), self.model.turn, flipped_and_ends
+        return self.model.board, False, self.model.pieces(), self.model.turn, flipped_and_ends
+    
+    #Returns all possible placemets and the amount of disks they'll flip.
     def options(self):
         board = np.zeros((8,8))
         options = self.model.all_options()
@@ -91,6 +95,7 @@ class Controller:
             board[option[0][0], option[0][1]] = option[1]
         return board
     
+    #Generates a board based on the current fen.
     def generate_board(self):
         if self.start == "":
             x = Constants.DEFAULT_START.split("/")

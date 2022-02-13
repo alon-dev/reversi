@@ -14,7 +14,7 @@ class View:
         self.first = first
         print(self.difficulty, self.ai)
         self.master = master
-        self.controller = Controller()
+        self.controller = Controller(self.difficulty)
         self.button_frm = tk.Frame(self.master)
         self.button_list = []
 
@@ -58,14 +58,13 @@ class View:
                 else:
                     self.win_label["text"] = Constants.LABELS["pc_turn"]
                     self.master.update()
-                    board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
+                    board, self.is_win, pieces, self.player, flipped_and_ends = self.controller.computer_play()
                     self.win_label["text"] = Constants.LABELS["player_turn"]
                     if self.is_win:
                         self.win(pieces)
                     self.highlight()
+                    self.show_computer_move(flipped_and_ends[0], flipped_and_ends[1])
                     self.update(board)
-                    if self.is_win:
-                        self.win(pieces)
             else:
                 self.highlight()
     
@@ -100,7 +99,15 @@ class View:
         if len(highlights) == 0:
             if self.ai:
                 if not self.is_win:
-                    self.controller.computer_play(self.difficulty)
+                    self.win_label["text"] = Constants.LABELS["pc_turn"]
+                    board, self.is_win, pieces, self.player, flipped_and_ends = self.controller.computer_play()
+                    if self.is_win:
+                        self.win(pieces)
+                    self.highlight()
+                    self.show_computer_move(flipped_and_ends[0], flipped_and_ends[1])
+                    self.win_label["text"] = Constants.LABELS["player_turn"]
+                    self.update(board)
+                
                 else:
                     return
         for i in range(8):
@@ -154,9 +161,10 @@ class View:
                 self.win_label["text"] = Constants.LABELS["pc_turn"]
                 self.dont_highlight()
                 self.master.update()
-                board, self.is_win, pieces, self.player = self.controller.computer_play(self.difficulty)
+                board, self.is_win, pieces, self.player, flipped_and_ends = self.controller.computer_play()
                 self.win_label["text"] = Constants.LABELS["player_turn"]
                 self.highlight()
+                self.show_computer_move(flipped_and_ends[0], flipped_and_ends[1])
                 self.update(board)
         else:
             if self.turn == -1:
@@ -166,6 +174,12 @@ class View:
                 self.win_label["text"] = Constants.LABELS["white_turn"]
                 self.highlight()
         self.master.update()
+        
+    def show_computer_move(self, flipped, ends):
+        for place in ends:
+            print(place)
+            self.button_list[place[0]][place[1]]["bg"] = 'gray'
+        self.button_list[ends[0][0]][ends[0][1]]["bg"] = 'orange'
  
 
 
