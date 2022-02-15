@@ -6,7 +6,12 @@ class Controller:
     
 
     def __init__(self, difficulty) -> None:
-        self.model = Model(difficulty)
+        self.depth = 5
+        if difficulty == 2:
+            self.model = Model(1)
+            self.depth = 6
+        else:
+            self.model = Model(difficulty)
         self.start = ""
     
     #Checks if a certain tile (i,j) is a legal placement
@@ -75,10 +80,10 @@ class Controller:
         turn = self.model.turn
         while self.model.turn == turn:
             if turn == -1:
-                res = self.model.min_max(5, False)
+                res = self.model.min_max(self.depth, False)
                 move = res[0][0]
             else:
-                res = self.model.min_max(5, True)
+                res = self.model.min_max(self.depth, True)
                 move = res[0][0]
             is_end, flipped_and_ends = self.model.move(move)
             if is_end:
@@ -123,3 +128,15 @@ class Controller:
                         self.model.turn = -1
                     j += 1
         return self.model.board, self.model.turn
+    
+    def set_difficulty(self, difficulty):
+        num = 1
+        if difficulty == 'insane':
+            self.model.set_difficulty(num)
+            self.depth = 6
+        elif difficulty == 'hard':
+            self.model.set_difficulty(num)
+        else:
+            num = 0
+            self.model.set_difficulty(num)
+        return self.model.score_func, num

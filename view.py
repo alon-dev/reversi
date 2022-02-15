@@ -1,6 +1,7 @@
 from tkinter import Label, Menu, Tk
 import tkinter as tk
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, showinfo
+from classes.settings import Settings
 
 from controller import Controller
 from classes.main_menu import MM
@@ -17,6 +18,7 @@ class View:
         self.controller = Controller(self.difficulty)
         self.button_frm = tk.Frame(self.master)
         self.button_list = []
+        self.color = Constants.DEFAULT_COLOR
 
         for i in range(8):
             self.button_list.append([])
@@ -31,11 +33,15 @@ class View:
         self.labelFrm.pack()
         self.win_label.pack()
         self.update_turn()
+        
         self.menubar = Menu(self.master)
+        
         self.file_menu = Menu(self.menubar, tearoff=0)
         self.file_menu.add_command(label="Save", command= self.controller.save_game)
         self.file_menu.add_command(label="Load", command= self.load_game)
         self.menubar.add_cascade(label="File", menu=self.file_menu)
+        self.menubar.add_cascade(label='About', command=self.about_menu)
+        self.menubar.add_cascade(label='Settings', command=self.settings)
         self.master.config(menu=self.menubar)
         
         self.master.update()
@@ -117,13 +123,13 @@ class View:
                     self.button_list[i][j]["text"] = int(highlights[i][j])
                     self.button_list[i][j].configure(compound="center")
                 else:
-                    self.button_list[i][j].configure(bg="green", text="")
+                    self.button_list[i][j].configure(bg=self.color, text="")
     
     #Removes any highlighted tiles on the board.
     def dont_highlight(self):
         for i in range(8):
             for j in range(8):
-                self.button_list[i][j].configure(bg="green", text="")
+                self.button_list[i][j].configure(bg=self.color, text="")
     
     #Handles wins. Ends the game and displays the winner.
     def win(self, pieces):
@@ -180,6 +186,25 @@ class View:
             print(place)
             self.button_list[place[0]][place[1]]["bg"] = 'gray'
         self.button_list[ends[0][0]][ends[0][1]]["bg"] = 'orange'
+    
+    def about_menu(self):
+        showinfo('About This Game', message="This game was made by Alon Engel as a project for Rabin High School's AI major.")
+    
+    def settings(self):
+        self.settings_class = Settings(self.color, self.difficulty)
+        self.settings_class.summon_menu(self.settings_apply)
+    
+    def settings_apply(self):
+        for i in range(8):
+            for j in range(8):
+                if self.button_list[i][j]["bg"] == self.color:
+                    self.button_list[i][j]["bg"] = self.settings_class.color_variable.get()
+        self.color = self.settings_class.color_variable.get()
+        
+        res = self.controller.set_difficulty(self.settings_class.difficulty_variable.get())
+        self.difficulty = res[1]
+        print(res[0])
+        self.settings_class.root.destroy()
  
 
 

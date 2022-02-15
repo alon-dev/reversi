@@ -6,6 +6,9 @@ class Model:
         self.board = np.zeros((8, 8))
         self.turn = -1
         self.game_over = False
+        self.set_difficulty(difficulty)
+    
+    def set_difficulty(self, difficulty):        
         if difficulty == 1:
             self.score_func = self.score1
         else:

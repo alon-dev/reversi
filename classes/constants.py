@@ -8,4 +8,6 @@ class Constants:
         "black_win":"Black Wins by "
     }
     DEFAULT_START = "8/8/8/3wb3/3bw3/8/8/8/B"
-    
+    DEFAULT_COLOR = "green"
+    COLORS = ["green", "blue", "sky blue", "slate gray", "orchid3"]
+    DIFFICULTIES = ["easy", "hard", "insane"]
