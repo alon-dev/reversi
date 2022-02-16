@@ -82,9 +82,11 @@ class Controller:
             if turn == -1:
                 res = self.model.min_max(self.depth, False)
                 move = res[0][0]
+                print(res[1])
             else:
                 res = self.model.min_max(self.depth, True)
                 move = res[0][0]
+                print(res[1])
             is_end, flipped_and_ends = self.model.move(move)
             if is_end:
                 return self.model.board, True, self.model.pieces(), self.model.turn, flipped_and_ends

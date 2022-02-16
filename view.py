@@ -183,7 +183,6 @@ class View:
         
     def show_computer_move(self, flipped, ends):
         for place in ends:
-            print(place)
             self.button_list[place[0]][place[1]]["bg"] = 'gray'
         self.button_list[ends[0][0]][ends[0][1]]["bg"] = 'orange'
     
