@@ -142,7 +142,7 @@ class Model:
         best_move = None
         moves = self.all_options()
         temp_turn = self.turn
-        
+        temp_game_over = self.game_over
         if isMaximizingPlayer:
             best_score = float("-inf")
             for move in moves:
@@ -151,6 +151,7 @@ class Model:
                 score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
                 self.reverse_move(move[0], flipped)
                 self.turn = temp_turn
+                self.game_over = temp_game_over
                 if score > best_score:
                     best_move = move
                     best_score = score
@@ -166,6 +167,7 @@ class Model:
                 score = self.min_max(depth-1, not isMaximizingPlayer, alpha, beta)[1]
                 self.reverse_move(move[0], flipped)
                 self.turn = temp_turn
+                self.game_over = temp_game_over
                 if score < best_score:
                     best_move = move
                     best_score = score

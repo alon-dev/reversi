@@ -8,6 +8,7 @@ class MM:
 
     def summon_menu(self):
         self.root = Tk()
+        self.root.resizable(False, False)
         self.root.title('Welcome!')
         self.entry = Frame(self.root)
         title = Label(self.entry, text="Welcome to Reversi!", font=("Consolas", 21), padx=10, fg="red")
@@ -15,7 +16,7 @@ class MM:
         explanation_paragraph = Label(self.entry, justify=CENTER, text="Each reversi piece has a black side and a white side. On your turn, you place one piece on \n\
 the board with your color facing up. You must place the piece so that an opponent's piece, or a row of opponent's pieces, is flanked by\n\
 your pieces. All of the opponent's pieces between your pieces are then turned over to become your color. You can capture vertical, \n\
-horizontal, and diagonal rows of pieces. Also, you can capture more than one row at once.The object of the game is \n\
+horizontal, and diagonal rows of pieces. Also, you can capture more than one row at once.The objective of the game is \n\
 to own more pieces than your opponent when the game is over. The game is over when neither player has a move. Usually, this means \n\
 the board is full.")
         

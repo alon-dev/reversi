@@ -213,6 +213,7 @@ ai = main_menu.ai
 difficulty = main_menu.difficulty
 first = main_menu.first
 root = Tk()
+root.resizable(False, False)
 root.title("Reversi")
 view_controller = View(root, ai, difficulty, first)
 root.update()
