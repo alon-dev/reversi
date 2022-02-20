@@ -142,3 +142,11 @@ class Controller:
             num = 0
             self.model.set_difficulty(num)
         return self.model.score_func, num
+    def reset(self, difficulty):
+        self.start = ""
+        if difficulty == 2:
+            self.model = Model(1)
+            self.depth = 6
+        else:
+            self.model = Model(difficulty)
+        return self.generate_board()

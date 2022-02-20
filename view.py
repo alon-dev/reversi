@@ -1,8 +1,7 @@
-from tkinter import Label, Menu, Tk
+from tkinter import CENTER, Label, Menu, Tk
 import tkinter as tk
 from tkinter.messagebox import showerror, showinfo
 from classes.settings import Settings
-
 from controller import Controller
 from classes.main_menu import MM
 from classes.mybutton import MyButton
@@ -29,7 +28,7 @@ class View:
         
         self.button_frm.pack()
         self.labelFrm = tk.Frame(self.master)
-        self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Reversi!", fg="red")
+        self.win_label = Label(self.labelFrm, font=("Consolas, 30"), text="Reversi!", fg="black")
         self.labelFrm.pack()
         self.win_label.pack()
         self.update_turn()
@@ -139,11 +138,14 @@ class View:
             self.win_label["text"] = "Draw!"
         else:
             self.win_label["text"] = Constants.LABELS["black_win"] + str(int(-pieces))
-        self.win_label["fg"] = "yellow"
-        self.win_label["bg"] = "black"
+        self.win_label["fg"] = "red"
         for row in self.button_list:
             for button in row:
                 button.configure(state="disabled")
+        self.restart_button = tk.Button(self.labelFrm, text="Restart", font=("Helvetica", 16), command=self.restart, borderwidth=5)
+        self.exit_button = tk.Button(self.labelFrm, text="Quit", font=("Helvetica", 16), command=self.master.destroy, borderwidth=5)
+        self.exit_button.pack(pady=1, side="left", fill="both", expand=1)
+        self.restart_button.pack(pady=1, side="right", fill="both", expand=1)
                 
     #Updates the board to match a given 2d numpy array representation of a board            
     def update(self, board):
@@ -160,7 +162,7 @@ class View:
     #Used to load/start a game and make sure labels are correct and correct player gets to play    
     def update_turn(self):
         if self.ai:
-            if self.first and self.turn == -1:
+            if (self.first and self.turn == -1) or ((not self.first) and self.turn == 1):
                 self.win_label["text"] = Constants.LABELS["player_turn"]
                 self.highlight()
             else:
@@ -204,7 +206,20 @@ class View:
         self.difficulty = res[1]
         print(res[0])
         self.settings_class.root.destroy()
- 
+    def restart(self):
+        for row in self.button_list:
+            for button in row:
+                button.configure(state="normal")
+        defaultbg = self.master.cget('bg')
+        self.win_label["bg"] = defaultbg
+        self.win_label["fg"] = "black"
+        self.exit_button.pack_forget()
+        self.restart_button.pack_forget()
+        board, turn = self.controller.reset(self.difficulty)
+        self.turn = turn
+        self.update(board)
+        self.dont_highlight()
+        self.update_turn()
 
 
 main_menu = MM()
