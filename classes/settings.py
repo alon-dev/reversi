@@ -10,6 +10,7 @@ class Settings:
     
     def summon_menu(self, ok_command):
         self.root = Tk()
+        self.root.title("Settings")
         self.settings_frame = Frame(self.root)
         self.color_variable = StringVar(self.settings_frame)
         self.color_variable.set(self.color)
